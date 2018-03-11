@@ -34,9 +34,50 @@
 
 (def active-color (atom 0.0))
 
+(ctl dummyf :b 0)
+
+(defsynth in-bus-synth [in-bus 0 gain 10 cutoff 10]
+  (let [src (sound-in in-bus)
+        srci (lpf src cutoff)
+        srco (* gain srci)
+        _ (tap "ivol" 60 srco)]
+    (out 0 (pan2 srco))))
+
+(def ibs (in-bus-synth))
+
+(ctl ibs :cutoff 440)
+
+(kill ibs)
 
 
-(t/start "./b7.glsl" :width 1920 :height 1080 :cams [0 1] :textures ["./vt.png" "./vt.png"]  :videos ["./jkl.mp4" "./metro.mp4" "./spede.mp4"] :user-data {"iGlobalBeatCount" (atom {:synth active-data-probes :tap "global-beat-count"}) "iActiveColor" active-color "iA" (atom {:synth dummyf :tap "a"}) "iB" (atom {:synth dummyf :tap "b"}) "iC" (atom {:synth dummyf :tap "c"}) "iD" (atom {:synth dummyf :tap "d"}) "iE" (atom {:synth dummyf :tap "e"})  })
+(def in-bus-atom (atom {:synth ibs :tap "ivol"}))
+
+(def in-bus-tap (get-in (:synth @in-bus-atom) [:taps (:tap @in-bus-atom)]))
+
+(add-watch in-bus-tap :level
+           (fn [_ _ old new]
+             (when (< 0.005 new)
+               (t/set-video-frame 2 52000)
+               ;(bassSin)
+               (overpad 15 :attack 0.01 :release 0.25)
+               (overpad 5 :attack 0.1 :release 0.1)
+               )))
+
+
+
+
+(defsynth humm [amp 1 f0 19 f1 20 f2 30 f3 40 f4 50]
+  (let [src (apply + (* (sin-osc [f0 f1 f2 f3 f4]) 0.2))
+        src2 (sin-osc 0.1)
+        outt (* amp src src2)
+        _ (tap "outt" 60 outt)]
+    (out 0 (pan2 outt))))
+
+(def hummf (humm))
+
+(kill hummf)
+
+(t/start "./b7.glsl" :width 1920 :height 1080 :cams [0]  :videos ["./jkl.mp4" "./metro.mp4" "./spede.mp4"] :user-data {"iGlobalBeatCount" (atom {:synth active-data-probes :tap "global-beat-count"}) "iActiveColor" active-color "iA" (atom {:synth dummyf :tap "a"}) "iB" (atom {:synth dummyf :tap "b"}) "iC" (atom {:synth dummyf :tap "c"}) "iD" (atom {:synth dummyf :tap "d"}) "iE" (atom {:synth dummyf :tap "e"}) "outt" (atom {:synth hummf :tap "outt"})  })
 
 
 (t/start "./b7.glsl" :width 1920 :height 1080 :cams [0 1] :videos ["./jkl.mp4" "./metro.mp4" "./spede.mp4"])
@@ -79,15 +120,10 @@
 
 (def kickf (kick :amp 1 :fw 6))
 
-(println @active-color)
-
-(kill kickf )
-
-
 
 (defonce kick-drum-buffer (buffer 256))
 
-(pattern! kick-drum-buffer [1 0 0 0 0 0 1 0])
+(pattern! kick-drum-buffer [1 0 0 0 0 1 0 1 1 0 1 0])
 
 (defsynth drum-data-probe [kick-drum-buffer 0 timing-signal-bus 0]
   (let [beat-count (in:kr timing-signal-bus)
@@ -97,15 +133,15 @@
 
 
 
-(def drum-data-probe (drum-data-probe kick-drum-buffer (:count time/beat-1th)))
+(def drum-data-probef (drum-data-probe kick-drum-buffer (:count time/beat-1th)))
 
-(kill drum-data-probe)
+(kill drum-data-probef)
 
-(def kick-atom (atom {:synth drum-data-probe :tap "drum-beat"}))
+(def kick-atom (atom {:synth drum-data-probef :tap "drum-beat"}))
 
 (def kick-tap (get-in (:synth @kick-atom) [:taps (:tap @kick-atom)]))
 
-(def set-frames [0 3000 5500 7000])
+(def set-frames [52000 51000 200])
 
 (add-watch kick-tap :cell-color
            (fn [_ _ old new]
@@ -117,9 +153,12 @@
                (reset! active-color (mod (+ @active-color 1.0) 100))
                )))
 
-(t/set-video-fps 2 25)
+(t/set-video-fps 1 25)
+
+(t/set-video-frame 0 7000)
 
 (t/post-start-cam 0)
+
 
 
 
@@ -134,7 +173,6 @@
 
 (stop)
 
-(kickf)
 
 (defsynth overpad_c [note 60 amp 0.7 attack 0.01 release 2]
   (let [freq (midicps note)

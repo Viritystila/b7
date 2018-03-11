@@ -4,13 +4,14 @@ uniform float iActiveColor;
 uniform float iA;
 uniform float iB;
 uniform float iC;
+uniform float outt;
 
 void main(void){
   vec2 uv = (gl_FragCoord.xy / iResolution.xy);
   uv.y=1.0-uv.y;
   vec2 uv2 = (gl_FragCoord.xy / iResolution.xy);
   	vec2 p = gl_FragCoord.xy / iResolution.x;//normalized coords with some cheat
-  uv2.y=1.0-uv2.y;
+        uv2.y=1.0-uv2.y;
 
   float prop = iResolution.x / iResolution.y;//screen proroption
   vec2 m = vec2(0.5, 0.5 / prop);//center coords
@@ -18,7 +19,7 @@ void main(void){
   float r = sqrt(dot(d, d)); // distance of pixel from center
 
   float power = ( 1.0 * 3.141592 / (2.0 * sqrt(dot(m, m))) ) *
-				(200*sin(1.15*iGlobalTime) / iResolution.x - 0.5);//amount of effect
+				(1000*(1000.15*iOvertoneVolume) / iResolution.x - 0.5);//amount of effect
   float bind;//radius of 1:1 effect
 	if (power > 0.0) bind = sqrt(dot(m, m));//stick to corners
 	else {if (prop < 1.0) bind = m.x; else bind = m.y;}//stick to borders
@@ -62,14 +63,14 @@ void main(void){
 
   //color key
 
-  vec4 fg=v1;
+  vec4 fg=c2;
   vec4 bg=v3;
 
-  float maxrb = max( fg.r, fg.g );
+  float maxrb = max( fg.r, fg.g);
   float k = clamp( (fg.b-maxrb)*90, 0.0, 1.0 );
 
   float dg = fg.b;
-  fg.b = min( fg.b, maxrb*0.8);
+  fg.b = min( fg.b, maxrb);
     fg += dg - fg.b;
 
     vec4 cf6=mix(fg, bg, k);
@@ -77,6 +78,6 @@ void main(void){
 
 
 
-  gl_FragColor = cf7;
+  gl_FragColor = v3;
 
 }
