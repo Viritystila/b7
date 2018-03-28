@@ -45,7 +45,7 @@
 
 (def ibs (in-bus-synth))
 
-(ctl ibs :cutoff 440)
+(ctl ibs :cutoff 40)
 
 (kill ibs)
 
@@ -56,14 +56,14 @@
 
 (add-watch in-bus-tap :level
            (fn [_ _ old new]
-             (when (< 0.005 new)
-               (t/set-video-frame 2 52000)
+             (when (< 0.05 new)
+               (t/set-video-frame 2 51000)
                ;(bassSin)
-               (overpad 15 :attack 0.01 :release 0.25)
-               (overpad 5 :attack 0.1 :release 0.1)
+               (overpad 15 :attack 0.1 :release 0.025)
+               (overpad 10 :attack 0.01 :release 0.1)
                )))
 
-
+(stop)
 
 
 (defsynth humm [amp 1 f0 19 f1 20 f2 30 f3 40 f4 50]

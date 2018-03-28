@@ -19,7 +19,7 @@ void main(void){
   float r = sqrt(dot(d, d)); // distance of pixel from center
 
   float power = ( 1.0 * 3.141592 / (2.0 * sqrt(dot(m, m))) ) *
-				(1000*(1000.15*iOvertoneVolume) / iResolution.x - 0.5);//amount of effect
+				(1000*(0.15) / iResolution.x - 0.5);//amount of effect
   float bind;//radius of 1:1 effect
 	if (power > 0.0) bind = sqrt(dot(m, m));//stick to corners
 	else {if (prop < 1.0) bind = m.x; else bind = m.y;}//stick to borders
@@ -41,7 +41,7 @@ void main(void){
 
   vec4 fftw=texture2D(iFftWave, uv);
 
-  vec4 c2 = texture2D(iCam0,vec2(uv3.x, -uv3.y * prop));
+  vec4 c2 = texture2D(iCam0,uv2) ;//vec2(uv3.x, -uv3.y * prop));
   vec4 c3 = texture2D(iCam1,uv2);
   vec4 c4 = texture2D(iCam2,uv2);
   vec4 c5 = texture2D(iCam3,uv2);
@@ -63,8 +63,8 @@ void main(void){
 
   //color key
 
-  vec4 fg=c2;
-  vec4 bg=v3;
+  vec4 fg=v3;
+  vec4 bg=c2;
 
   float maxrb = max( fg.r, fg.g);
   float k = clamp( (fg.b-maxrb)*90, 0.0, 1.0 );
@@ -78,6 +78,6 @@ void main(void){
 
 
 
-  gl_FragColor = v3;
+  gl_FragColor = cf7;
 
 }
