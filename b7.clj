@@ -1,4 +1,4 @@
-(ns b6 (:use [overtone.live][mud.core][mud.chords]) (:require [shadertone.tone :as t] [mud.timing :as time] [overtone.studio.fx :as fx] [clojure.math.numeric-tower :as math]))
+(ns b7 (:use [overtone.live][mud.core][mud.chords]) (:require [shadertone.tone :as t] [mud.timing :as time]))
 
 
 (ctl-global-clock 0.5)
@@ -14,27 +14,7 @@
 (def active-data-probes (data-probes (:count time/beat-1th)))
 
 
-(defsynth dummy [a 0 b 1 c 1 d 1 e 1]
-  (let [av a
-        bv b
-        cv c
-        dv d
-        ev e
-        _ (tap "a" 60 a)
-        _ (tap "b" 60 b)
-        _ (tap "c" 60 (a2k (sin-osc c)))
-        _ (tap "d" 60 (a2k (sin-osc d)))
-        _ (tap "e" 60 (a2k (sin-osc e)))
-
-        ]
-    (out 0 0)))
-
-
-(def dummyf (dummy))
-
 (def active-color (atom 0.0))
-
-(ctl dummyf :b 0)
 
 (defsynth in-bus-synth [in-bus 0 gain 10 cutoff 10]
   (let [src (sound-in in-bus)
@@ -75,9 +55,26 @@
 
 (def hummf (humm))
 
+(ctl hummf :amp 1 :f1 19 :f2 20 :f3 40)
+
 (kill hummf)
 
-(t/start "./b7.glsl" :width 1920 :height 1080 :cams [0]  :videos ["./jkl.mp4" "./metro.mp4" "./spede.mp4"] :user-data {"iGlobalBeatCount" (atom {:synth active-data-probes :tap "global-beat-count"}) "iActiveColor" active-color "iA" (atom {:synth dummyf :tap "a"}) "iB" (atom {:synth dummyf :tap "b"}) "iC" (atom {:synth dummyf :tap "c"}) "iD" (atom {:synth dummyf :tap "d"}) "iE" (atom {:synth dummyf :tap "e"}) "outt" (atom {:synth hummf :tap "outt"})  })
+
+(def ws (t/getWindowState))
+
+(def rh (nth (:redHistogram @ws) 2))
+
+(def bh (nth (:blueHistogram @ws) 2))
+
+
+(add-watch rh :rh (fn [_ _ old new]
+                                       ; (println (nth @rh 200))
+                    (ctl hummf :f4 (nth @rh 100))
+                    (ctl hummf :f3 (nth @bh 200))
+                    ) )
+
+
+;(t/start "./b7.glsl" :width 1920 :height 1080 :cams [0]  :videos ["./jkl.mp4" "./metro.mp4" "./spede.mp4"] :user-data {"iGlobalBeatCount" (atom {:synth active-data-probes :tap "global-beat-count"}) "iActiveColor" active-color "iA" (atom {:synth dummyf :tap "a"}) "iB" (atom {:synth dummyf :tap "b"}) "iC" (atom {:synth dummyf :tap "c"}) "iD" (atom {:synth dummyf :tap "d"}) "iE" (atom {:synth dummyf :tap "e"}) "outt" (atom {:synth hummf :tap "outt"})  })
 
 
 (t/start "./b7.glsl" :width 1920 :height 1080 :cams [0 1] :videos ["./jkl.mp4" "./metro.mp4" "./spede.mp4"])
@@ -143,6 +140,11 @@
 
 (def set-frames [52000 51000 200])
 
+
+
+
+;(add-watch (:redHistogram shadertone.to))
+
 (add-watch kick-tap :cell-color
            (fn [_ _ old new]
              (when (and (= old 0.0) (= 1.0 new))
@@ -155,7 +157,7 @@
 
 (t/set-video-fps 1 25)
 
-(t/set-video-frame 0 7000)
+(t/set-video-frame 2 52000)
 
 (t/post-start-cam 0)
 
