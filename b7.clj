@@ -1,6 +1,7 @@
 (ns b7 (:use [overtone.live][mud.core][mud.chords]) (:require [shadertone.tone :as t] [mud.timing :as time]))
 
 
+
 (ctl-global-clock 0.5)
 
 (ctl time/root-s :rate 4.)
@@ -60,19 +61,22 @@
 (kill hummf)
 
 
-(def ws (t/getWindowState))
+;(def ws (t/getWindowState))
 
-(def rh (nth (:redHistogram @ws) 2))
+;(def rh (nth (:redHistogram @ws) 2))
 
-(def bh (nth (:blueHistogram @ws) 2))
+;(def bh (nth (:blueHistogram @ws) 2))
+
+(def ch (t/get-cam-histogram 1 :red) )
 
 
-(add-watch rh :rh (fn [_ _ old new]
+(add-watch ch :ch (fn [_ _ old new]
                                        ; (println (nth @rh 200))
-                    (ctl hummf :f4 (nth @rh 100))
-                    (ctl hummf :f3 (nth @bh 200))
+                    (ctl hummf :f4 (nth @ch 100))
+                    (ctl hummf :f3 (nth @ch 200))
+                    ;(t/set-video-frame 2 (nth @ch 20))
                     ) )
-
+(t/set-video-play 2)
 
 ;(t/start "./b7.glsl" :width 1920 :height 1080 :cams [0]  :videos ["./jkl.mp4" "./metro.mp4" "./spede.mp4"] :user-data {"iGlobalBeatCount" (atom {:synth active-data-probes :tap "global-beat-count"}) "iActiveColor" active-color "iA" (atom {:synth dummyf :tap "a"}) "iB" (atom {:synth dummyf :tap "b"}) "iC" (atom {:synth dummyf :tap "c"}) "iD" (atom {:synth dummyf :tap "d"}) "iE" (atom {:synth dummyf :tap "e"}) "outt" (atom {:synth hummf :tap "outt"})  })
 
