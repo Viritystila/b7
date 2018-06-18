@@ -84,6 +84,32 @@
 (t/start "./b7.glsl" :width 1920 :height 1080 :cams [0 1] :videos ["./jkl.mp4" "./metro.mp4" "./spede.mp4"])
 
 
+(defsynth dualPulse [note 44 amp 1 attack 0.1 decay 0.1 sustain 0.2 release 1.4]
+  (let [;freq (* 0.02 (sin-osc 100) (saw note))
+        sp1 (sin-osc 10 0)
+        sp2 (pulse 1 0.1)
+        env (env-gen (perc attack release) :action FREE)
+        src2 (sin-osc 20 (* Math/PI 0.5 sp2))]
+    (out 0 (pan2 (* env amp (* sp1 sp1 src2))))))
+
+
+(def dualPulsef (dualPulse))
+
+(kill dualPulsef)
+
+(def my-bus0 (control-bus 1))
+(control-bus-set! my-bus0 10101)
+
+(defsynth noise [freq 44 amp 1 freq2 44]
+  (let [noiseV (pink-noise)
+        src1 (sin-osc noiseV)
+        src2 (sin-osc (* noiseV 0.9 (in:kr freq2)))
+        src3 (lf-saw freq)]
+    (out 0 (pan2 (*  amp (+ src1 src2) src3)))))
+
+(def noisef (noise :freq2 my-bus0))
+
+(kill noisef)
 
 (defsynth overpad [note 60 amp 0.7 attack 0.001 release 2]
   (let [freq (midicps note)
@@ -103,7 +129,7 @@
   (let [freq-env (env-gen (perc 0.1 0.1) :action FREE)
         src1 (sin-osc (* freq1 freq-env) phase1)
         src2 (sin-osc freq1 phase2)
-        src3 (saw (* freq3 freq-env))]
+        src3 (lf-saw (* freq3 freq-env))]
     (out 0 (pan2 (clip2 (+ (* amp 0.0125 src3) (* 0.5 amp src1 src2 freq-env)) 1)))))
 
 (def bassSinf (bassSin))
@@ -152,12 +178,13 @@
 (add-watch kick-tap :cell-color
            (fn [_ _ old new]
              (when (and (= old 0.0) (= 1.0 new))
-               (t/set-video-frame 2 (nth set-frames (mod (+ @active-color 1.0) (count set-frames))))
+               ;(t/set-video-frame 2 (nth set-frames (mod (+ @active-color 1.0) (count set-frames))))
                (bassSin)
                (overpad 15 :attack 0.01 :release 0.25)
                (overpad 5 :attack 0.1 :release 0.1)
                (reset! active-color (mod (+ @active-color 1.0) 100))
                )))
+
 
 (t/set-video-fps 1 25)
 
